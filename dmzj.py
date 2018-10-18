@@ -33,9 +33,9 @@ def get_request(url):
             temp = {'title': a_tag.xpath('./@title')[0],
                     'href': PREIX + a_tag.xpath('./@href')[0]}
             item['data'].append(temp)
-        
+
         num = 0
-        # 進入章節網址            
+        # 進入章節網址
         for num in range(len(a_tags)):
             chapter_url = item['data'][num]['href']
             r_chapter = requests.get(chapter_url, headers = headers)
@@ -59,11 +59,11 @@ def get_request(url):
             elif 'html' in r_chapter.request.url:
                 datas = pages.split('=')[1][1:-2]  # var pages={}
                 url_list = json.JSONDecoder().decode(datas)['page_url'].split('\r\n')
-            
+
             headers['Referer'] = item['data'][num]['href']
             comicName = item['data'][num]['title'].split('-')[0]
             chapterName = item['data'][num]['title'].split('-')[1]
-            
+
             if os.path.exists('./%s' % comicName):
                 print('已存在%s，進行下一步' % comicName)
                 if os.path.exists('./%s/%s' % (comicName, chapterName)):
@@ -71,7 +71,7 @@ def get_request(url):
                 else:
                     os.mkdir('./%s/%s' % (comicName, chapterName))
             else:
-                os.mkdir('./%s' % comicName)
+                os.makedirs('./%s/%s' % (comicName, chapterName))
 
             num = num + 1
 
@@ -83,7 +83,7 @@ def get_request(url):
                     fp.write(img.content)
                 click.echo('save %s.jpg' % index)
             click.echo('complete!')
-                
+
         with open('./details.json', mode='w', encoding='utf-8') as f:
             # ensure_ascii設置為False，防止中文亂碼
             f.write(json.dumps(item, ensure_ascii=False))
@@ -115,16 +115,16 @@ def get_chapter(url):
         elif 'html' in r_chapter.request.url:
             datas = pages.split('=')[1][1:-2]  # var pages={}
             url_list = json.JSONDecoder().decode(datas)['page_url'].split('\r\n')
-        
+
         soup = BeautifulSoup(r_chapter.text, 'lxml')
         comicName = soup.find(class_='redhotl').prettify('utf-8').decode('utf-8').split('\n')[1].split(' ')[1]
         chapterName = soup.find_all(class_='redhotl')[1].prettify('utf-8').decode('utf-8').split('\n')[1].split(' ')[1]
-        
-        
+
+
         if not os.path.exists('./%s' % comicName):
             os.mkdir('./%s' % comicName)
             print('\n創建 "%s" 資料夾' % comicName)
-            
+
             if not os.path.exists('./%s/%s' % (comicName, chapterName)):
                 os.mkdir('./%s/%s' % (comicName, chapterName))
                 print('創建 "%s" 資料夾\n' % chapterName)
@@ -132,7 +132,7 @@ def get_chapter(url):
                 print('已存在 "%s"，進行下一步\n' % chapterName)
         else:
             print('已存在 "%s"，直接進行下一步\n' % comicName)
-        
+
 
         for index, ul in enumerate(url_list):
             img = requests.get(PREFIX + ul, headers=headers)
@@ -144,16 +144,16 @@ def get_chapter(url):
         click.echo('\n%s complete!\n' % chapterName)
     except Exception as e:
         raise e
-    
 
-        
+
+
 if __name__ == '__main__':
-    
+
     print('動漫之家漫畫下載\n作者：rtshaw\n')
     print('模式 1→若要下載所有話數，直接輸入漫畫網址，例如：https://manhua.dmzj.com/wohesaozidetongjushenghuo\n模式 2→若只需要下載單話，輸入章節網址，例如：https://manhua.dmzj.com/wohesaozidetongjushenghuo/55694.shtml#@page=1\n')
     model = int(input('請選擇模式：'))
     print('你選擇了模式 %d' % model)
-    
+
     if model == 1:
         get_request(str(input('\n請輸入漫畫網址：')))
         print('\n所有任務已完成')
